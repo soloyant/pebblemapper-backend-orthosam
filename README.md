@@ -152,7 +152,7 @@ comparison.
 | Hand outlines | 1,362 | | | | 17.7 mm | 26.5 mm | |
 | **OrthoSAM, native resolution (default)** | 1,659 | 1,079 (79 %) | 65 % | 1.4 mm | 17.6 mm | 26.8 mm | 430 s (GPU) |
 | **OrthoSAM, `upsample` 2** | 2,742 | 1,344 (99 %) | 49 % | 1.3 mm | 14.7 mm | 22.2 mm | 2,000 s (GPU) |
-| Mask R-CNN (PebbleMapper, built in) | 324 | 320 (24 %) | 99 % | 1.6 mm | 20.2 mm | 34.2 mm | 41 s (GPU) |
+| Mask R-CNN (PebbleMapper, built in) | 324 | 320 (23 %) | 99 % | 1.6 mm | 20.2 mm | 34.2 mm | 41 s (GPU) |
 | Segment Every Grain | 1,822 | 1,350 (99 %) | 74 % | 1.0 mm | 17.7 mm | 26.3 mm | 259 s (GPU) |
 | ImageGrains | 2,034 | 1,316 (97 %) | 65 % | 1.7 mm | 17.2 mm | 26.0 mm | 51 s (CPU) |
 | PebbleCountsAuto | 605 | 491 (36 %) | 81 % | 4.1 mm | 21.0 mm | 35.3 mm | 17 s (CPU) |
@@ -170,3 +170,13 @@ detections, which favours that model here. Times are for one photograph on a 201
   <img src="docs/figures/same-photo-orthosam.jpg" alt="The example quadrat through OrthoSAM" width="70%"/>
 </p>
 <p align="center"><em>OrthoSAM's detections on the example quadrat at native resolution: each clast filled by size class and outlined, its long and short axes drawn.</em></p>
+
+<p align="center">
+  <img src="docs/figures/same-photo-all-models.jpg" alt="The example quadrat: hand outlines and the five models" width="100%"/>
+</p>
+<p align="center"><em>The hand outlines and the five models side by side on the same photograph, coloured on the same size classes.</em></p>
+
+<p align="center">
+  <img src="docs/figures/same-photo-cdf.png" alt="Cumulative size distributions of the hand outlines and the five models" width="70%"/>
+</p>
+<p align="center"><em>Cumulative distributions of clast length, D50 (circle) and D84 (square) marked; the grey band is below 8 pixels.</em></p>
