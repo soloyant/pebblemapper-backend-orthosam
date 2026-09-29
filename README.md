@@ -147,23 +147,29 @@ checkpoint, the frame band left out and each clast measured by PebbleMapper's ow
 The same photograph was run through the other models PebbleMapper can use, for
 comparison.
 
-| Model | Detections | Hand-outlined clasts found | Detections that match one | Length RMSE | D50 | D84 | Time per photograph |
-|---|---|---|---|---|---|---|---|
-| Hand outlines | 1,362 | | | | 17.7 mm | 26.5 mm | |
-| **OrthoSAM, native resolution (default)** | 1,659 | 1,079 (79 %) | 65 % | 1.4 mm | 17.6 mm | 26.8 mm | 430 s (GPU) |
-| **OrthoSAM, `upsample` 2** | 2,742 | 1,344 (99 %) | 49 % | 1.3 mm | 14.7 mm | 22.2 mm | 2,000 s (GPU) |
-| Mask R-CNN (PebbleMapper, built in) | 324 | 320 (23 %) | 99 % | 1.6 mm | 20.2 mm | 34.2 mm | 41 s (GPU) |
-| Segment Every Grain | 1,822 | 1,350 (99 %) | 74 % | 1.0 mm | 17.7 mm | 26.3 mm | 259 s (GPU) |
-| ImageGrains | 2,034 | 1,316 (97 %) | 65 % | 1.7 mm | 17.2 mm | 26.0 mm | 51 s (CPU) |
-| PebbleCountsAuto | 605 | 491 (36 %) | 81 % | 4.1 mm | 21.0 mm | 35.3 mm | 17 s (CPU) |
+| Model | Detections | True positives | Recall | Precision | F1 | Length RMSE | D50 | D84 | Time per photograph |
+|---|---|---|---|---|---|---|---|---|---|
+| Hand outlines (reference) | 1,362 | | | | | | 17.7 mm | 26.5 mm | |
+| **OrthoSAM, native resolution (default)** | 1,659 | 1,079 | 0.79 | 0.65 | 0.71 | 1.4 mm | 17.6 mm | 26.8 mm | 430 s (GPU) |
+| **OrthoSAM, `upsample` 2** | 2,742 | 1,344 | 0.99 | 0.49 | 0.65 | 1.3 mm | 14.7 mm | 22.2 mm | 2,000 s (GPU) |
+| Mask R-CNN (PebbleMapper, built in) | 324 | 320 | 0.23 | 0.99 | 0.38 | 1.6 mm | 20.2 mm | 34.2 mm | 41 s (GPU) |
+| Segment Every Grain | 1,822 | 1,350 | 0.99 | 0.74 | 0.85 | 1.0 mm | 17.7 mm | 26.3 mm | 259 s (GPU) |
+| ImageGrains | 2,034 | 1,316 | 0.97 | 0.65 | 0.78 | 1.7 mm | 17.2 mm | 26.0 mm | 51 s (CPU) |
+| PebbleCountsAuto | 605 | 491 | 0.36 | 0.81 | 0.50 | 4.1 mm | 21.0 mm | 35.3 mm | 17 s (CPU) |
 
 Detections are paired with the 1,362 hand-outlined clasts by position and size, as
-PebbleMapper's Validate tab does. The hand outlines leave out many of the smallest grains
-between the larger clasts, so a detection with no hand-outlined partner is not
-necessarily wrong: with `upsample` 2, half of OrthoSAM's unmatched detections are
-shorter than 11.9 mm, the length 95 % of the hand-outlined clasts exceed, and these
-small grains also lower its D50. The hand outlines started from Segment Every Grain's
-detections, which favours that model here. Times are for one photograph on a 2018 laptop
+PebbleMapper's Validate tab does. A true positive is a detection paired with a
+hand-outlined clast; recall is true positives over the 1,362 hand-outlined clasts,
+precision is true positives over the detections, and F1 is their harmonic mean. False
+negatives (1,362 minus true positives) and false positives (detections minus true
+positives) follow from the table. Length RMSE is computed on the true positives.
+
+The hand outlines leave out many of the smallest grains between the larger clasts, so a
+detection with no hand-outlined partner is not necessarily wrong, and precision is a
+lower bound: with `upsample` 2, half of OrthoSAM's unpaired detections are shorter than
+11.9 mm, the length 95 % of the hand-outlined clasts exceed, and these small grains also
+lower its D50. The hand outlines started from Segment Every Grain's detections, which
+favours that model here. Times are for one photograph on a 2018 laptop
 (Intel Core i7-8850H, NVIDIA Quadro P600 with 4 GB).
 
 <p align="center">
