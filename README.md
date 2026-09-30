@@ -183,9 +183,9 @@ hand-outlined clasts exceed; these small grains also lower its D50.
 <p align="center"><em>OrthoSAM's detections on the whole photograph, each clast filled by size class and outlined, its long and short axes drawn.</em></p>
 
 <p align="center">
-  <img src="docs/figures/same-photo-all-models.jpg" alt="A 40 cm crop of the example quadrat: the hand outlines and five of the models" width="100%"/>
+  <img src="docs/figures/same-photo-all-models.jpg" alt="A 40 cm crop of the example quadrat: the hand outlines and the six models" width="100%"/>
 </p>
-<p align="center"><em>A 40 cm crop of the same photograph: the hand outlines and each model's detections (ImageGrains 2.0 for ImageGrains), on the same size classes in every panel.</em></p>
+<p align="center"><em>A 40 cm crop of the same photograph: the hand outlines and each model's detections, both ImageGrains versions included, on the same size classes in every panel.</em></p>
 
 <p align="center">
   <img src="docs/figures/same-photo-cdf.png" alt="Cumulative size distributions of the hand outlines and the six models" width="70%"/>
