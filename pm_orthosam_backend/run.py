@@ -143,12 +143,36 @@ def _para_list(opts, data_dir, out_dir, ckpt_dir, model_type):
     return lst
 
 
+def _guard_saves():
+    """Make every numpy save recreate its folder first.
+
+    OrthoSAM creates each pass's chunk folder once, then fills it tile by tile.
+    On Windows an empty folder under the temporary directory was twice removed
+    between its creation and the first tile's save, several minutes later, which
+    killed the run. This process only runs OrthoSAM, so wrapping numpy.save here
+    touches nothing else.
+    """
+    if getattr(np.save, "_pm_guarded", False):
+        return
+    original = np.save
+
+    def save(file, *args, **kwargs):
+        if isinstance(file, (str, os.PathLike)):
+            os.makedirs(os.path.dirname(os.fspath(file)) or ".", exist_ok=True)
+        return original(file, *args, **kwargs)
+
+    save._pm_guarded = True
+    np.save = save
+
+
 def _segment(image, opts, ckpt_dir, model_type, upstream, work_root):
     """Run OrthoSAM on one RGB array; int32 label image at the input's size."""
     import cv2
     from skimage.segmentation import relabel_sequential
 
     predict_tiles, merge_chunks, predict_tiles_n = _import_orthosam(upstream)
+    _guard_saves()
+    os.makedirs(work_root, exist_ok=True)
     work = tempfile.mkdtemp(prefix="pmos_", dir=work_root)
     try:
         data_dir = os.path.join(work, "data")
@@ -212,7 +236,9 @@ def main(argv=None):
             f"{torch.cuda.get_device_properties(0).total_memory / 2**30:.1f} GiB")
     log(f"options: {json.dumps(opts)}")
 
-    work_root = os.environ.get("PM_ORTHOSAM_WORK") or tempfile.gettempdir()
+    # Not the temporary folder: its empty sub-folders can be cleaned away mid-run.
+    work_root = os.environ.get("PM_ORTHOSAM_WORK") or os.path.join(
+        os.path.expanduser("~"), ".pebblemapper", "orthosam_work")
     for ji, job in enumerate(jobs):
         path = job["path"]
         out_npz = job.get("instances_path") or (job["out_csv"] + ".instances.npz")
