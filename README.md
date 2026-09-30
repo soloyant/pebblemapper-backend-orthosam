@@ -85,9 +85,9 @@ Points to note:
 - **Smallest grain.** The authors report reliable detection from about 30 pixels across.
   Finer grains are found only in part. The `upsample` option (below) enlarges the image
   before segmentation, at a cost that grows with its square.
-- **Speed.** OrthoSAM is slow: every tile is prompted with 900 points and each prompt is
-  refined. Expect minutes per quadrat photograph on a GPU, and hours for a large
-  ortho-image.
+- **Run time.** Every tile is prompted with 30 × 30 points. The IMG_0955 photograph below
+  (1,482 × 1,482 px) takes 430 s on a 4 GB laptop GPU; the authors report about 4 hours
+  for a 10,000 × 10,000 px image on a 16 GB GPU.
 - **Framed quadrat photographs.** SAM segments every object, including the bars of a
   quadrat frame. A photograph rectified by PebbleMapper's Orthorectify carries the
   frame's thickness in its sidecar, and the frame band is left out automatically. For any
@@ -142,7 +142,7 @@ Also cite Segment Anything (Kirillov et al., 2023).
 ## The same photograph through every model
 
 The rectified quadrat photograph of PebbleMapper's `example_03_Etretat` (IMG_0955: 0.84 m
-frame, 0.567 mm/px, a densely packed flint beach, 1,362 surface clasts outlined by hand)
+frame, 0.567 mm/px, a densely packed flint beach, 1,362 fully visible pebbles outlined by hand)
 was run through every model PebbleMapper can use, with the frame band left out and each
 clast measured by PebbleMapper's own step. The ImageGrains plug-in provides two models,
 ImageGrains 2.0 and 1.2.
@@ -164,18 +164,15 @@ precision is true positives over the detections, and F1 is their harmonic mean. 
 negatives (1,362 minus true positives) and false positives (detections minus true
 positives) follow from the table. Length RMSE is computed on the true positives.
 
-The hand outlines leave out many of the smallest grains between the larger clasts, so a
-detection with no hand-outlined partner is not necessarily wrong, and precision is a
-lower bound. ImageGrains 2.0 outlines most of those small grains, which is why its D50 is
-lower. The hand outlines started from Segmenteverygrain's detections, which favours
-that model here. Times are for one photograph once the model is loaded (loading adds 7 to
+The hand outlines keep only the pebbles lying fully visible on top of the sediment;
+partly buried and overlapping pebbles were removed by hand. This is the rule Mask R-CNN's
+training labels follow. The hand outlines were started from Segmenteverygrain's
+detections. Times are for one photograph once the model is loaded (loading adds 7 to
 70 s once per run), on a 2018 laptop (Intel Core i7-8850H, NVIDIA Quadro P600 with 4 GB).
 ImageGrains 1.2 and PebbleCountsAuto run on the CPU.
 
-With `upsample` 2, OrthoSAM finds 1,344 of the hand-outlined clasts (recall 0.99) among
-2,742 detections (precision 0.49, F1 0.65; D50 14.7 mm, D84 22.2 mm) in 2,000 s. Half of
-its unpaired detections are then shorter than 11.9 mm, the length 95 % of the
-hand-outlined clasts exceed; these small grains also lower its D50.
+With `upsample` 2, OrthoSAM makes 2,742 detections, 1,344 of them true positives (recall
+0.99, precision 0.49, F1 0.65; D50 14.7 mm, D84 22.2 mm), in 2,000 s.
 
 <p align="center">
   <img src="docs/figures/same-photo-orthosam.jpg" alt="The example quadrat through OrthoSAM" width="70%"/>
