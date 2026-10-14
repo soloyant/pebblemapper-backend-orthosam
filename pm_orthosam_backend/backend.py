@@ -17,6 +17,7 @@ so in ortho mode each PebbleMapper job is handed over whole.
 # SPDX-License-Identifier: MIT
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 from pathlib import Path
@@ -66,9 +67,19 @@ INFO = BackendInfo(
 )
 
 
-def make_backend():
-    """Zero-argument factory named in user_detectors.json."""
-    return OrthoSamBackend()
+MODEL_VERSION = "OrthoSAM 18da0e5 + SAM v1"
+
+
+def make_backend(ctx=None):
+    """The factory PebbleMapper calls.
+
+    ``ctx`` is ``None`` when the backend is declared by hand in
+    ``user_detectors.json`` (it then reads ``PM_ORTHOSAM_*``), and a
+    ``detectors.base.InstallContext`` when PebbleMapper installed it from its
+    Models tab: the context says where the environment, the weights and the
+    upstream code are.
+    """
+    return OrthoSamBackend(ctx)
 
 
 class OrthoSamBackend(InstanceSubprocessBackend):
@@ -76,15 +87,30 @@ class OrthoSamBackend(InstanceSubprocessBackend):
     env_name = ENV_NAME
     required_modules = ("torch", "segment_anything", "cv2", "tifffile", "skimage")
     script = _SCRIPT
-    model_version = "OrthoSAM 18da0e5 + SAM v1"
+    model_version = MODEL_VERSION
     log_prefix = "orthosam"
 
+    def __init__(self, ctx=None):
+        self.weights_dir, self.upstream, self.model_type = WEIGHTS_DIR, UPSTREAM, MODEL_TYPE
+        if ctx is not None:
+            self.env_name = ctx.env_prefix
+            self.variant = ctx.variant
+            self.weights_dir = ctx.weights_dir
+            self.upstream = ctx.code_dir / "upstream"
+            self.model_type = "vit_b"             # the checkpoint the list installs
+            self.model_version = f"{ctx.release} ({MODEL_VERSION})"
+            self.info = dataclasses.replace(
+                INFO, env=str(ctx.env_prefix),
+                weights=str(self.weights_dir / CHECKPOINTS["vit_b"]),
+                install_hint="Installed from PebbleMapper's Models tab; repair "
+                             "or remove it there.")
+
     def is_available(self) -> bool:
-        ckpt = CHECKPOINTS.get(MODEL_TYPE, CHECKPOINTS["vit_b"])
+        ckpt = CHECKPOINTS.get(self.model_type, CHECKPOINTS["vit_b"])
         return (_SCRIPT.exists()
-                and (UPSTREAM / "OrthoSAM" / "Layer_0.py").is_file()
-                and (WEIGHTS_DIR / ckpt).exists()
-                and subprocess_runner.conda_env_exists(ENV_NAME))
+                and (self.upstream / "OrthoSAM" / "Layer_0.py").is_file()
+                and (self.weights_dir / ckpt).exists()
+                and subprocess_runner.conda_env_exists(self.env_name))
 
     def spec_params(self, mode, kwargs, resolution):
         log_fn = kwargs.get("log_fn") or (lambda s: None)
@@ -94,5 +120,5 @@ class OrthoSamBackend(InstanceSubprocessBackend):
                    "the manifest but not applied.")
         opts = dict(kwargs.get("orthosam_options")
                     or json.loads(os.environ.get("PM_ORTHOSAM_OPTIONS", "{}") or "{}"))
-        return {"weights_dir": str(WEIGHTS_DIR), "upstream": str(UPSTREAM),
-                "model_type": MODEL_TYPE, "orthosam": opts}
+        return {"weights_dir": str(self.weights_dir), "upstream": str(self.upstream),
+                "model_type": self.model_type, "orthosam": opts}

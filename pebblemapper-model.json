@@ -1,0 +1,15 @@
+{
+ "id": "orthosam",
+ "backends": [
+  {"name": "orthosam", "display_name": "OrthoSAM (Chan, Rheinwalt & Bookhagen)",
+   "package": "pm_orthosam_backend", "module": "backend", "factory": "make_backend"}
+ ],
+ "authors": "Chan, V., Rheinwalt, A. & Bookhagen, B.",
+ "citation": "Chan, V., Rheinwalt, A., & Bookhagen, B. (2026). OrthoSAM: multi-scale extension of the Segment Anything Model for river pebble delineation from large orthophotos. Earth Surface Dynamics, 14, 391-416. https://doi.org/10.5194/esurf-14-391-2026",
+ "licence_code": "Apache-2.0 (OrthoSAM, Segment Anything); MIT (adapter)",
+ "licence_weights": "Apache-2.0 (Segment Anything ViT-B checkpoint, Meta)",
+ "description": "Segment Anything prompted on a point grid over overlapping tiles, with coarser passes for grains larger than a tile. Every clast is scored 1.0 (no per-instance confidence).",
+ "homepage": "https://github.com/soloyant/pebblemapper-backend-orthosam",
+ "runs_in": "own",
+ "upstream_name": "OrthoSAM"
+}

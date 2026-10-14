@@ -27,6 +27,15 @@ authors.
 
 ## Installation
 
+**From PebbleMapper (Windows).** Open the **Models** tab, or click **Add a model…** under
+*Detection model* in the left drawer, and click **Install** beside OrthoSAM. PebbleMapper
+downloads this repository's release, OrthoSAM, the SAM ViT-B checkpoint and the exact
+software environment the release was tested with, checks every file against its checksum,
+runs the model once on a test photograph, and adds it to the Detection model selector. No
+terminal, Git or file editing is needed. Remove or repair it from the same tab.
+
+**By hand** (other systems, or to work on the adapter):
+
 1. Clone OrthoSAM into `upstream/`, at the commit the adapter was tested with:
 
    ```bat
@@ -115,9 +124,16 @@ PebbleMapper writes the model's name, version and licence into every run's
 
 ## Licences
 
-This repository contains only the adapter. OrthoSAM is cloned from its repository by
-`scripts/get_upstream.py`, Segment Anything is installed by pip, and the checkpoints are
-downloaded by `scripts/download_weights.py`.
+This repository contains only the adapter. Installed by hand, OrthoSAM is cloned from its
+repository by `scripts/get_upstream.py`, Segment Anything is installed by pip, and the
+checkpoints are downloaded by `scripts/download_weights.py`. Each release of this repository
+also carries an unmodified copy of OrthoSAM's `OrthoSAM/` package, with its licence and
+README, at the commit the adapter was tested with (`upstream-OrthoSAM-<commit>.zip`), so that
+PebbleMapper installs a fixed copy rather than a moving one; the checkpoint is downloaded from
+Meta's own address and checked against its SHA-256.
+
+`check.jpg`, the photograph PebbleMapper's installer runs the model on once, is a crop of
+`example_02a` from PebbleMapper's example data (© Antoine Soloy, CC BY 4.0).
 
 | Component | Copyright | Licence |
 |---|---|---|
