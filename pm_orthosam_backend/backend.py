@@ -49,8 +49,9 @@ INFO = BackendInfo(
     display_name="OrthoSAM (Chan, Rheinwalt & Bookhagen)",
     framework="pytorch",
     license=("Apache-2.0 (OrthoSAM code, UP-RS-ESP); Apache-2.0 (Segment "
-             "Anything code and checkpoints, Meta). None of it is "
-             "redistributed with this adapter (MIT)."),
+             "Anything code and checkpoints, Meta); MIT (this adapter). The "
+             "adapter's releases carry an unmodified copy of OrthoSAM's "
+             "package; the checkpoint is downloaded from Meta."),
     output_type="instance",
     env=ENV_NAME,
     in_process=False,
