@@ -3,16 +3,16 @@
  "model": "orthosam",
  "shared_controls": ["device", "device_number"],
  "not_used": {
-  "tile_size": "OrthoSAM tiles the image itself; see 'OrthoSAM's own tile size' under More settings.",
-  "overlap": "OrthoSAM tiles the image itself; see 'Overlap of OrthoSAM's own tiles' under More settings.",
-  "confidence": "OrthoSAM gives no per-grain confidence; every grain is scored 1.",
-  "dedup": "OrthoSAM merges the grains of its own tiles and passes itself."
+  "tile_size": "it tiles the image itself; see 'OrthoSAM's own tile size' under More settings.",
+  "overlap": "it tiles the image itself; see 'Overlap of OrthoSAM's own tiles' under More settings.",
+  "confidence": "it gives no per-grain confidence; every grain is scored 1.",
+  "dedup": "it merges the grains of its own tiles and passes itself."
  },
  "settings": [
   {
    "key": "upsample",
    "label": "Resample factor of the first pass",
-   "help": "The image is enlarged by this factor before the first pass. OrthoSAM finds grains reliably from about 30 pixels across; 2 or 3 brings finer grains above that. Higher: finer grains found; at 2 or 3 the image has 4 or 9 times as many pixels to process.",
+   "help": "Enlarges the image before the first pass. Higher: finer grains found; 2 means four times the pixels.",
    "unit": "",
    "kind": "number", "min": 0.5, "max": 4.0, "step": 0.5,
    "default": 1.0,
@@ -23,7 +23,7 @@
   {
    "key": "coarse_pass",
    "label": "Coarser pass for large grains",
-   "help": "After the first pass, OrthoSAM can look again at a smaller copy of the image, where grains larger than a tile become whole. Half: one coarser pass at half the first pass's factor; none: the first pass only, faster, large grains may be split.",
+   "help": "A second look at a smaller copy, where large grains become whole. None: faster, large grains may be split.",
    "kind": "choice",
    "choices": [{"value": "half", "label": "half the first pass's factor"}, {"value": "none", "label": "none"}],
    "default": "half",
@@ -34,18 +34,19 @@
   {
    "key": "min_area_px",
    "label": "Minimum grain area",
-   "help": "Grains smaller than this area, in pixels of the original image, are dropped. Higher: small grains and specks removed.",
-   "unit": "px",
+   "help": "Smaller grains are dropped. Higher: fewer specks.",
+   "unit": "px²",
    "kind": "number", "min": 0, "max": 100000, "step": 1, "integer": false,
    "default": 30.0,
-   "authors": {"value": 30.0, "source": "OrthoSAM large_orthosam preset, expected_min_size (30, in the preset's own units)"},
+   "authors": {"value": null, "source": "no value in pixels: the large_orthosam preset's expected_min_size is 30 mm² on the ground, which depends on the image's resolution"},
+   "differs_because": "PebbleMapper gives OrthoSAM sizes in pixels and keeps the preset's number, 30, as an area in pixels.",
    "modes": ["quadrat", "ortho"],
    "main": true
   },
   {
    "key": "points_per_axis",
    "label": "Prompt points per tile side",
-   "help": "Segment Anything is prompted on a grid of this many points per side of each tile. Higher: more small grains found; graphics memory grows with its square.",
+   "help": "Prompt points along each tile side. Higher: more small grains, much more graphics memory.",
    "unit": "count",
    "kind": "number", "min": 4, "max": 64, "step": 1, "integer": true,
    "default": 30,
@@ -56,7 +57,7 @@
   {
    "key": "stability_t",
    "label": "Stability threshold",
-   "help": "Segment Anything keeps a mask only when its stability score reaches this value. Higher: fewer, cleaner grains; lower: more grains, some of them poor.",
+   "help": "Masks less stable than this are dropped. Higher: fewer, cleaner grains.",
    "unit": "fraction",
    "kind": "number", "min": 0.5, "max": 1.0, "step": 0.01,
    "default": 0.85,
@@ -67,7 +68,7 @@
   {
    "key": "tile_size",
    "label": "OrthoSAM's own tile size",
-   "help": "The side of the square tiles OrthoSAM processes. Higher: more context per tile and fewer tiles, more graphics memory.",
+   "help": "The side of OrthoSAM's tiles. Higher: more context per tile, more graphics memory.",
    "unit": "px",
    "kind": "number", "min": 256, "max": 2048, "step": 64, "integer": true,
    "default": 1024,
@@ -78,7 +79,7 @@
   {
    "key": "tile_overlap",
    "label": "Overlap of OrthoSAM's own tiles",
-   "help": "How many pixels OrthoSAM's tiles overlap. Higher: fewer grains cut where tiles meet, slower.",
+   "help": "How much OrthoSAM's tiles overlap. Higher: fewer grains cut at tile seams, slower.",
    "unit": "px",
    "kind": "number", "min": 0, "max": 1000, "step": 10, "integer": true,
    "default": 200,
@@ -89,7 +90,7 @@
   {
    "key": "dilation_size",
    "label": "Mask dilation",
-   "help": "Each mask is grown by this many pixels before the tiles are merged. Higher: larger outlines, neighbouring grains touch more.",
+   "help": "Grows each mask before the tiles are merged. Higher: larger outlines.",
    "unit": "px",
    "kind": "number", "min": 0, "max": 20, "step": 1, "integer": true,
    "default": 5,
