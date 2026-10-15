@@ -119,7 +119,13 @@ class OrthoSamBackend(InstanceSubprocessBackend):
             log_fn("[orthosam] note: min_confidence is a Mask R-CNN threshold; "
                    "OrthoSAM has no detector confidence, so it is recorded in "
                    "the manifest but not applied.")
-        opts = dict(kwargs.get("orthosam_options")
-                    or json.loads(os.environ.get("PM_ORTHOSAM_OPTIONS", "{}") or "{}"))
+        # PebbleMapper 1.2+ sends the values the user changed in the model's
+        # Settings (pm_settings.json); 1.1 sends nothing, and the release
+        # then behaves as 1.0.1 did.
+        if kwargs.get("model_options") is not None:
+            opts = dict(kwargs["model_options"])
+        else:
+            opts = dict(kwargs.get("orthosam_options")
+                        or json.loads(os.environ.get("PM_ORTHOSAM_OPTIONS", "{}") or "{}"))
         return {"weights_dir": str(self.weights_dir), "upstream": str(self.upstream),
                 "model_type": self.model_type, "orthosam": opts}

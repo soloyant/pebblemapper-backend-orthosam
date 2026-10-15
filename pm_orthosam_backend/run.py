@@ -35,6 +35,12 @@ Spec params honoured: ``devicemode`` ("gpu"/"cpu"), ``weights_dir``,
     stability_t       SAM stability-score threshold (default 0.85)
     dilation_size     OrthoSAM mask dilation (default 5)
     min_area_px       smallest grain kept, in original pixels (default 30)
+    coarse_pass       "half" (default: coarse_passes = [upsample / 2]) or "none"
+                      (coarse_passes = []); PebbleMapper 1.2's Settings use it
+
+These are described in ``pm_settings.json``. Each instance file also carries
+``resolved``: every value the run used, the package versions and the device
+(PebbleMapper 1.2's record of a result; older PebbleMapper versions ignore it).
 """
 # Copyright (c) 2026 Antoine Soloy
 # SPDX-License-Identifier: MIT
@@ -101,6 +107,44 @@ def _import_orthosam(upstream):
     return predict_tiles, merge_chunks, predict_tiles_n
 
 
+def _coarse_passes(opts, up):
+    """The later passes' factors: ``coarse_pass`` (Settings) first, then the
+    1.0 list option ``coarse_passes``, else one pass at half the first."""
+    choice = opts.get("coarse_pass")
+    if choice == "none":
+        return []
+    if choice == "half":
+        return [up / 2]
+    passes = opts.get("coarse_passes")
+    return [up / 2] if passes is None else list(passes)
+
+
+def _versions():
+    from importlib import metadata
+    out = {"OrthoSAM": "upstream clone shipped with this release"}
+    for name in ("segment_anything", "segment-anything", "torch"):
+        try:
+            out[name] = metadata.version(name)
+        except metadata.PackageNotFoundError:
+            pass
+    return out
+
+
+def _used(opts):
+    """Every setting as this run applies it (for ``resolved``)."""
+    up = float(opts.get("upsample", 1))
+    passes = _coarse_passes(opts, up)
+    return {"upsample": up,
+            "coarse_pass": "none" if not passes else ("half" if passes == [up / 2] else "custom"),
+            "coarse_passes": passes,
+            "min_area_px": float(opts.get("min_area_px", 30)),
+            "points_per_axis": int(opts.get("points_per_axis", 30)),
+            "stability_t": float(opts.get("stability_t", 0.85)),
+            "tile_size": int(opts.get("tile_size", 1024)),
+            "tile_overlap": int(opts.get("tile_overlap", 200)),
+            "dilation_size": int(opts.get("dilation_size", 5))}
+
+
 def _para_list(opts, data_dir, out_dir, ckpt_dir, model_type):
     """The per-pass parameter dicts OrthoSAM's utility.setup() would build.
 
@@ -108,9 +152,7 @@ def _para_list(opts, data_dir, out_dir, ckpt_dir, model_type):
     is an area in original pixels (OrthoSAM scales it by each pass's factor).
     """
     up = float(opts.get("upsample", 1))
-    passes = opts.get("coarse_passes")
-    if passes is None:
-        passes = [up / 2]
+    passes = _coarse_passes(opts, up)
     master = {
         "MODEL_TYPE": model_type,
         "CheckpointDIR": ckpt_dir,
@@ -249,10 +291,21 @@ def main(argv=None):
         log(f"  image {w}x{h} px")
         labels = _segment(image, opts, ckpt_dir, model_type, upstream, work_root)
         n = int(labels.max())
+        used = _used(opts)
+        resolved = {"format": 1, "settings": used, "versions": _versions(),
+                    "device": ({"kind": "cuda", "index": 0,
+                                "name": torch.cuda.get_device_name(0)}
+                               if device == "cuda" else
+                               {"kind": "cpu", "index": None, "name": "processor"}),
+                    "reduction": {"factor": 1.0, "reason": ""},
+                    "tiles": {"size_px": used["tile_size"],
+                              "overlap_px": used["tile_overlap"]},
+                    "model_type": model_type}
         os.makedirs(os.path.dirname(out_npz) or ".", exist_ok=True)
         np.savez_compressed(out_npz, labels=labels,
                             scores=np.ones(n, dtype=np.float32),
-                            shape=np.array([h, w], dtype=np.int64))
+                            shape=np.array([h, w], dtype=np.int64),
+                            resolved=np.array(json.dumps(resolved)))
         log(f"  {n} grains -> {os.path.basename(out_npz)} ({time.time() - t0:.1f}s)")
     log("done")
     return 0
